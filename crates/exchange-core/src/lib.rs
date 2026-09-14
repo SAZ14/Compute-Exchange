@@ -94,10 +94,7 @@ pub enum Command {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
-    AccountFunded {
-        account: AccountId,
-        amount: u64,
-    },
+    AccountFunded { account: AccountId, amount: u64 },
     OfferRegistered(OfferId),
     JobQueued(JobId),
     JobReserved(Reservation),
@@ -170,11 +167,7 @@ impl Exchange {
     /// Time is an externally supplied, nondecreasing logical timestamp.
     /// The caller owns the exchange exclusively. No network or clock access occurs.
     /// Failed commands leave every field unchanged, including time and sequence.
-    pub fn execute(
-        &mut self,
-        command: Command,
-        now: u64,
-    ) -> Result<Vec<Event>, ExchangeError> {
+    pub fn execute(&mut self, command: Command, now: u64) -> Result<Vec<Event>, ExchangeError> {
         if self.last_time.is_some_and(|previous| now < previous) {
             return Err(ExchangeError::TimeWentBackwards);
         }
@@ -308,7 +301,10 @@ impl Exchange {
             let job = self.jobs.get_mut(&job_id).expect("queued job exists");
             let hold = multiply(price_per_second, job.duration_seconds)?;
             let release = job.held_microcredits - hold;
-            let balance = self.accounts.get_mut(&job.buyer).expect("funded buyer exists");
+            let balance = self
+                .accounts
+                .get_mut(&job.buyer)
+                .expect("funded buyer exists");
             balance.reserved -= release;
             balance.available = add(balance.available, release)?;
             job.held_microcredits = hold;
@@ -339,11 +335,13 @@ fn positive(value: u64) -> Result<(), ExchangeError> {
 }
 
 fn add(left: u64, right: u64) -> Result<u64, ExchangeError> {
-    left.checked_add(right).ok_or(ExchangeError::ArithmeticOverflow)
+    left.checked_add(right)
+        .ok_or(ExchangeError::ArithmeticOverflow)
 }
 
 fn multiply(left: u64, right: u64) -> Result<u64, ExchangeError> {
-    left.checked_mul(right).ok_or(ExchangeError::ArithmeticOverflow)
+    left.checked_mul(right)
+        .ok_or(ExchangeError::ArithmeticOverflow)
 }
 
 #[cfg(test)]

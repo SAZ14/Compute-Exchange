@@ -83,7 +83,10 @@ fn cheapest_offer_wins_and_releases_price_improvement() {
     assert_eq!(exchange.reservations()[&JobId(1)].offer_id, OfferId(2));
     assert_eq!(exchange.balance(AccountId(1)).available, 85);
     assert_eq!(exchange.balance(AccountId(1)).reserved, 15);
-    assert!(matches!(events.as_slice(), [Event::JobQueued(_), Event::JobReserved(_)]));
+    assert!(matches!(
+        events.as_slice(),
+        [Event::JobQueued(_), Event::JobReserved(_)]
+    ));
     assert_invariants(&exchange);
 }
 
@@ -147,7 +150,10 @@ fn cancellation_releases_hold_and_cannot_be_repeated() {
     assert_eq!(exchange.balance(AccountId(1)).available, 100);
     assert_eq!(exchange.balance(AccountId(1)).reserved, 0);
     let before = exchange.clone();
-    assert_eq!(exchange.execute(cancel, 0), Err(ExchangeError::JobNotQueued));
+    assert_eq!(
+        exchange.execute(cancel, 0),
+        Err(ExchangeError::JobNotQueued)
+    );
     assert_eq!(exchange, before);
     assert_invariants(&exchange);
 }
@@ -240,9 +246,15 @@ fn duplicate_identifiers_are_rejected_without_mutation() {
     exchange.execute(offer(1, 3), 0).unwrap();
     exchange.execute(job(1, 5, 1), 0).unwrap();
     let before = exchange.clone();
-    assert_eq!(exchange.execute(offer(1, 4), 0), Err(ExchangeError::DuplicateOffer));
+    assert_eq!(
+        exchange.execute(offer(1, 4), 0),
+        Err(ExchangeError::DuplicateOffer)
+    );
     assert_eq!(exchange, before);
-    assert_eq!(exchange.execute(job(1, 5, 1), 0), Err(ExchangeError::DuplicateJob));
+    assert_eq!(
+        exchange.execute(job(1, 5, 1), 0),
+        Err(ExchangeError::DuplicateJob)
+    );
     assert_eq!(exchange, before);
 }
 
@@ -292,7 +304,9 @@ fn varied_commands_preserve_accounting_and_slot_invariants() {
     let mut exchange = Exchange::new();
     fund(&mut exchange, 1_000_000);
     for id in 1..=100 {
-        exchange.execute(job(id, id % 7 + 1, id % 5 + 1), 0).unwrap();
+        exchange
+            .execute(job(id, id % 7 + 1, id % 5 + 1), 0)
+            .unwrap();
         assert_invariants(&exchange);
         if id % 3 == 0 {
             exchange.execute(offer(id, id % 9 + 1), 0).unwrap();
