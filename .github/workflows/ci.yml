@@ -1,0 +1,28 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main, "codex/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+      - name: Check formatting
+        run: cargo +stable fmt --all -- --check
+      - name: Lint
+        if: success() || failure()
+        run: cargo +stable clippy --workspace --all-targets -- -D warnings
+      - name: Test
+        if: success() || failure()
+        run: cargo +stable test --workspace
+      - name: Run demo
+        if: success() || failure()
+        run: cargo +stable run -p exchange-cli

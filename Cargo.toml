@@ -1,0 +1,8 @@
+[workspace]
+members = ["crates/exchange-core", "crates/exchange-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
